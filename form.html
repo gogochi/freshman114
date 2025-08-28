@@ -142,6 +142,15 @@
         margin-top: var(--space-2);
       }
 
+      /* ===== 無障礙 ===== */
+      .visually-hidden {
+        position: absolute !important;
+        width: 1px; height: 1px;
+        padding: 0; margin: -1px;
+        overflow: hidden; clip: rect(0, 0, 0, 0);
+        white-space: nowrap; border: 0;
+      }
+
       /* ===== 結果區塊 ===== */
       #result .result-title {
         font-size: 1.125rem;
@@ -176,7 +185,7 @@
     <div class="container">
       <h1>找老師 (資訊系新鮮人成長營 114)</h1>
       <div class="card">
-        <form id="dreamForm">
+        <form id="dreamForm" novalidate autocomplete="on">
         <label for="className">班級 Class</label>
         <select id="className" name="className" required>
           <option value="">請選擇 Select…</option>
@@ -186,71 +195,169 @@
         </select>
 
         <label for="studentId">學號 Student ID</label>
-        <input type="text" id="studentId" name="studentId" required />
+        <input type="text" id="studentId" name="studentId" required inputmode="numeric" autocomplete="on" />
 
         <label for="name">姓名 Name</label>
-        <input type="text" id="name" name="name" required />
+        <input type="text" id="name" name="name" required autocomplete="name" />
 
         <label for="dream">四年的學習，如果可以幫助你完成一個夢想，那會是什麼夢想? 請詳細說明<br /><span class="hint">If four years of study could help you achieve one dream, what would it be? Please elaborate.</span></label>
         <textarea id="dream" name="dream" required></textarea>
 
-        <button class="btn" id="submitBtn" type="submit">提交 Submit</button>
-        <div id="err" class="error" style="display:none"></div>
+        <button class="btn" id="submitBtn" type="submit" data-idle="提交 Submit" data-busy="分析中… Analyzing…">提交 Submit</button>
+        <div id="err" class="error" role="alert" aria-live="assertive" style="display:none"></div>
         </form>
       </div>
 
-      <div id="result" class="card" style="display:none"></div>
+      <div id="result" class="card" style="display:none" aria-live="polite"></div>
     </div>
 
     <script>
-      const $ = (id) => document.getElementById(id);
+      (function() {
+        const $ = (id) => document.getElementById(id);
 
-      document.getElementById('dreamForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-        $('err').style.display = 'none';
-        $('result').style.display = 'none';
-
-        const data = {
-          className: $('className').value.trim(),
-          studentId: $('studentId').value.trim(),
-          name: $('name').value.trim(),
-          dream: $('dream').value.trim()
-        };
-
-        if (!data.className || !data.studentId || !data.name || !data.dream) {
-          $('err').textContent = '請完整填寫所有欄位';
-          $('err').style.display = 'block';
-          return;
+        // 簡單本地儲存：避免重新整理遺失內容
+        const FIELDS = ['className', 'studentId', 'name', 'dream'];
+        function saveLocal(data) {
+          try { localStorage.setItem('dreamForm', JSON.stringify(data)); } catch (e) {}
+        }
+        function loadLocal() {
+          try {
+            const raw = localStorage.getItem('dreamForm');
+            return raw ? JSON.parse(raw) : null;
+          } catch (e) { return null; }
         }
 
-        const btn = $('submitBtn');
-        btn.disabled = true;
-        btn.textContent = '分析中… Analyzing…';
+        function setLoading(loading) {
+          const btn = $('submitBtn');
+          btn.disabled = !!loading;
+          btn.textContent = loading ? (btn.getAttribute('data-busy') || '分析中…') : (btn.getAttribute('data-idle') || '提交');
+        }
 
-        google.script.run
-          .withSuccessHandler((res) => {
-            btn.disabled = false;
-            btn.textContent = '提交 Submit';
-            const teacher = res.teacherName || '（無）';
-            const reason = res.reason || '（無）';
-            const web = res.web ? ('<a target="_blank" href="' + res.web + '">' + res.web + '</a>') : '（無）';
-            const html = `
-              <div class="result-title">建議結果</div>
-              <div class="kv"><div class="k">推薦你找</div><div class="v">${teacher}</div></div>
-              <div class="kv"><div class="k">推薦原因</div><div class="v">${reason}</div></div>
-              <div class="kv"><div class="k">老師網頁</div><div class="v">${web}</div></div>
-            `;
-            $('result').innerHTML = html;
-            $('result').style.display = 'block';
-          })
-          .withFailureHandler((err) => {
-            btn.disabled = false;
-            btn.textContent = '提交 Submit';
-            $('err').textContent = (err && err.message) ? err.message : String(err || '未知錯誤');
-            $('err').style.display = 'block';
-          })
-          .handleForm(data);
-      });
+        function showError(msg) {
+          const el = $('err');
+          el.textContent = msg || '未知錯誤';
+          el.style.display = 'block';
+        }
+        function clearError() {
+          const el = $('err');
+          el.textContent = '';
+          el.style.display = 'none';
+        }
+
+        function sanitizeURL(url) {
+          try {
+            const u = new URL(url);
+            if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString();
+          } catch (e) {}
+          return '';
+        }
+
+        function renderKV(label, valueNode) {
+          const row = document.createElement('div');
+          row.className = 'kv';
+          const k = document.createElement('div');
+          k.className = 'k';
+          k.textContent = label;
+          const v = document.createElement('div');
+          v.className = 'v';
+          if (typeof valueNode === 'string') {
+            v.textContent = valueNode;
+          } else if (valueNode) {
+            v.appendChild(valueNode);
+          }
+          row.appendChild(k);
+          row.appendChild(v);
+          return row;
+        }
+
+        function renderResult(res) {
+          const container = $('result');
+          container.innerHTML = '';
+          const title = document.createElement('div');
+          title.className = 'result-title';
+          title.textContent = '建議結果';
+          container.appendChild(title);
+
+          const teacher = (res && res.teacherName) ? res.teacherName : '（無）';
+          const reason = (res && res.reason) ? res.reason : '（無）';
+
+          container.appendChild(renderKV('推薦你找', teacher));
+          container.appendChild(renderKV('推薦原因', reason));
+
+          let webNode = document.createTextNode('（無）');
+          if (res && res.web) {
+            const safe = sanitizeURL(res.web);
+            if (safe) {
+              const a = document.createElement('a');
+              a.href = safe;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              a.textContent = safe;
+              webNode = a;
+            }
+          }
+          container.appendChild(renderKV('老師網頁', webNode));
+
+          container.style.display = 'block';
+        }
+
+        function getData() {
+          return {
+            className: $('className').value.trim(),
+            studentId: $('studentId').value.trim(),
+            name: $('name').value.trim(),
+            dream: $('dream').value.trim()
+          };
+        }
+
+        function validate(data) {
+          if (!data.className || !data.studentId || !data.name || !data.dream) return '請完整填寫所有欄位';
+          // 可選：學號僅數字/英數
+          if (!/^[-A-Za-z0-9]+$/.test(data.studentId)) return '學號格式不正確（僅允許英數與連字號）';
+          return '';
+        }
+
+        // 初始化：套入本地儲存
+        document.addEventListener('DOMContentLoaded', function() {
+          const saved = loadLocal();
+          if (saved) {
+            FIELDS.forEach((f) => { if ($(f) && saved[f]) $(f).value = saved[f]; });
+          }
+          // 欄位變更即保存
+          FIELDS.forEach((f) => {
+            const el = $(f);
+            if (!el) return;
+            el.addEventListener('input', () => saveLocal(getData()));
+            el.addEventListener('change', () => saveLocal(getData()));
+          });
+        });
+
+        // 送出處理
+        $('dreamForm').addEventListener('submit', function (e) {
+          e.preventDefault();
+          clearError();
+          $('result').style.display = 'none';
+
+          const data = getData();
+          const msg = validate(data);
+          if (msg) {
+            showError(msg);
+            return;
+          }
+
+          setLoading(true);
+          google.script.run
+            .withSuccessHandler((res) => {
+              setLoading(false);
+              renderResult(res || {});
+            })
+            .withFailureHandler((err) => {
+              setLoading(false);
+              showError((err && err.message) ? err.message : String(err || '未知錯誤'));
+            })
+            .handleForm(data);
+        });
+      })();
     </script>
   </body>
   </html>
