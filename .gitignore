@@ -1,1 +1,3 @@
 .idea/
+# Local environment variables (do not commit)
+.env
