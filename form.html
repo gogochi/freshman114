@@ -33,6 +33,13 @@
 
       /* 流體字級：整體隨裝置寬度微調 */
       body { font-size: clamp(14px, 3.5vw, 16px); }
+      
+      /* 確保手機版本有適當間距 */
+      @media (max-width: 480px) {
+        body { padding: var(--space-2) 0; }
+        .container { padding: 0 var(--space-2); }
+        .card { margin: var(--space-2) auto 0; padding: var(--space-2); }
+      }
 
       /* 同一容器統一左右邊距與最大寬度，讓標題與卡片左緣對齊 */
       .container { max-width: 720px; margin: 0 auto; padding: 0 var(--space-3); }
@@ -97,31 +104,29 @@
 
       .hint { color: var(--color-muted); font-size: 12px; }
 
-      .row {
-        display: grid;
-        grid-template-columns: 1fr; /* 行動裝置單欄 */
-        gap: var(--space-2);
-      }
+      /* 已移除 .row 版面，保留此區塊空白避免影響其他樣式定位 */
 
       .error { color: #b91c1c; margin-top: var(--space-1); }
 
-      /* 結果區塊樣式 */
+      /* 結果區塊樣式（Flex 版本） */
       #result .result-title { font-weight: 700; margin-bottom: var(--space-2); }
-      #result .kv { display: grid; grid-template-columns: minmax(72px, auto) 1fr; gap: 6px 12px; align-items: start; padding: 6px 0; border-top: 1px dashed var(--color-border); }
+      #result .kv { display: flex; align-items: flex-start; padding: 6px 0; border-top: 1px dashed var(--color-border); }
       #result .kv:first-of-type { border-top: 0; }
-      #result .k { color: #374151; font-weight: 600; white-space: nowrap; }
-      #result .v { color: #111827; }
+      #result .k { color: #374151; font-weight: 600; white-space: nowrap; flex: 0 0 88px; max-width: 40%; }
+      #result .v { color: #111827; flex: 1 1 auto; min-width: 0; margin-left: 12px; }
       /* 讓結果中的長網址在手機可折行 */
       #result a { overflow-wrap: anywhere; word-break: break-word; }
 
+      
+
       @media (min-width: 640px) {
         h1 { font-size: clamp(22px, 3vw, 28px); }
-        .row { grid-template-columns: 1fr 1fr; gap: var(--space-3); }
         .btn { width: auto; }
       }
 
       @media (max-width: 420px) {
-        #result .kv { grid-template-columns: 1fr; }
+        #result .kv { flex-direction: column; }
+        #result .v { margin-left: 0; margin-top: 4px; }
         #result .k { opacity: .9; }
       }
     </style>
@@ -139,16 +144,11 @@
           <option>資訊一丙</option>
         </select>
 
-        <div class="row">
-          <div>
-            <label for="studentId">學號 Student ID</label>
-            <input type="text" id="studentId" name="studentId" required />
-          </div>
-          <div>
-            <label for="name">姓名 Name</label>
-            <input type="text" id="name" name="name" required />
-          </div>
-        </div>
+        <label for="studentId">學號 Student ID</label>
+        <input type="text" id="studentId" name="studentId" required />
+
+        <label for="name">姓名 Name</label>
+        <input type="text" id="name" name="name" required />
 
         <label for="dream">四年的學習，如果可以幫助你完成一個夢想，那會是什麼夢想? 請詳細說明<br /><span class="hint">If four years of study could help you achieve one dream, what would it be? Please elaborate.</span></label>
         <textarea id="dream" name="dream" required></textarea>
