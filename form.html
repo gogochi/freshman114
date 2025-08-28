@@ -3,131 +3,189 @@
 <html>
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
     <title>找老師(資訊系新鮮人成長營 114)</title>
     <style>
-      *, *::before, *::after { box-sizing: border-box; }
-      html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-      :root {
-        --space-1: 8px;
-        --space-2: 12px;
-        --space-3: 16px;
-        --radius: 10px;
-        --color-border: #e5e7eb;
-        --color-bg: #fafafa;
-        --color-text: #111827;
-        --color-muted: #6b7280;
-        --color-primary: #2563eb;
-        --shadow-1: 0 1px 2px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.06);
+      /* ===== 基礎重置 ===== */
+      *, *::before, *::after {
+        box-sizing: border-box;
       }
 
+      html {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+        /* 增大行動裝置的根字體大小 */
+        font-size: clamp(16px, 4vw, 20px);
+      }
+
+      /* ===== CSS 變數 ===== */
+      :root {
+        --space-2: 16px;
+        --space-3: 20px;
+        --space-4: 28px;
+        --color-bg-page: #f3f4f6; /* 頁面背景色 */
+        --color-bg-card: #ffffff; /* 卡片背景色 */
+        --color-border: #d1d5db;   /* 邊框顏色 */
+        --color-text-primary: #1f2937;
+        --color-text-secondary: #6b7280;
+        --color-accent: #2563eb;
+        --color-error: #dc2626;
+      }
+
+      /* ===== 基礎布局 ===== */
       body {
         font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans TC', Arial, sans-serif;
-        color: var(--color-text);
+        font-size: 1rem;
+        color: var(--color-text-primary);
+        background-color: var(--color-bg-page);
+        line-height: 1.6;
         margin: 0;
-        padding: max(var(--space-3), env(safe-area-inset-top)) 0 max(var(--space-3), env(safe-area-inset-bottom));
-        background: #fff;
-        line-height: 1.5;
-        overflow-x: hidden; /* 防止偶發的水平捲動 */
+        padding: var(--space-3); /* 讓卡片與螢幕邊緣有間距 */
       }
 
-      /* 流體字級：整體隨裝置寬度微調 */
-      body { font-size: clamp(14px, 3.5vw, 16px); }
-      
-      /* 確保手機版本有適當間距 */
-      @media (max-width: 480px) {
-        body { padding: var(--space-2) 0; }
-        .container { padding: 0 var(--space-2); }
-        .card { margin: var(--space-2) auto 0; padding: var(--space-2); }
+      .container {
+        max-width: 640px; /* 設定內容最大寬度 */
+        margin: 0 auto;   /* 讓容器置中 */
       }
 
-      /* 同一容器統一左右邊距與最大寬度，讓標題與卡片左緣對齊 */
-      .container { max-width: 720px; margin: 0 auto; padding: 0 var(--space-3); }
-
+      /* ===== 標題樣式 ===== */
       h1 {
-        font-size: clamp(20px, 6vw, 28px);
-        margin: 0 0 var(--space-2);
+        font-size: 1.75rem;
+        font-weight: 600;
+        margin: 0 0 var(--space-3);
+        line-height: 1.3;
       }
 
+      /* ===== 表單與結果卡片 ===== */
+      .card {
+        background-color: var(--color-bg-card);
+        border: 1px solid var(--color-border);
+        padding: var(--space-4);
+        border-radius: 12px;
+      }
+
+      #result.card {
+        margin-top: var(--space-3);
+      }
+
+      #dreamForm {
+        border: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      /* ===== 表單元素 ===== */
       label {
         display: block;
-        margin: var(--space-1) 0 4px;
+        margin: var(--space-2) 0 4px;
         font-weight: 600;
       }
 
+      label:first-of-type {
+        margin-top: 0;
+      }
+
       select,
-      input[type=text],
+      input[type="text"],
       textarea {
         width: 100%;
-        padding: 10px 12px;
-        box-sizing: border-box;
+        padding: 14px 16px;
+        font-size: 1.1rem;
         border: 1px solid var(--color-border);
-        border-radius: var(--radius);
-        background: #fff;
-        font-size: clamp(16px, 3.8vw, 18px); /* 避免 iOS 自動放大，同時隨視窗微調 */
+        border-radius: 8px;
+        background-color: #fff; /* 確保背景是白色 */
+        line-height: 1.4;
       }
 
-      input[type=text],
-      select {
-        min-height: 44px; /* 友善點擊目標 */
+      select:focus,
+      input[type="text"]:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--color-accent);
+        box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
       }
 
       textarea {
-        min-height: clamp(120px, 22vh, 200px);
+        min-height: 140px;
         resize: vertical;
       }
 
+      .hint {
+        color: var(--color-text-secondary);
+        font-size: 0.875rem;
+        font-weight: normal;
+      }
+
+      /* ===== 按鈕樣式 ===== */
       .btn {
-        margin-top: var(--space-2);
-        padding: 12px 16px;
-        background: var(--color-primary);
-        color: #fff;
-        border: none;
-        border-radius: var(--radius);
-        cursor: pointer;
-        width: 100%; /* 手機上滿版按鈕 */
-        font-size: clamp(16px, 4vw, 18px);
-      }
-      .btn:hover { filter: brightness(1.05); }
-      .btn:active { filter: brightness(0.95); }
-      .btn:disabled { opacity: 0.6; cursor: not-allowed; }
-
-      .card {
-        margin: 16px auto 0;
-        padding: var(--space-3);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius);
-        background: var(--color-bg);
-        box-shadow: var(--shadow-1);
+        display: block;
         width: 100%;
+        margin-top: var(--space-3);
+        padding: 16px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: white;
+        background: var(--color-accent);
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        min-height: 52px;
       }
 
-      .hint { color: var(--color-muted); font-size: 12px; }
-
-      /* 已移除 .row 版面，保留此區塊空白避免影響其他樣式定位 */
-
-      .error { color: #b91c1c; margin-top: var(--space-1); }
-
-      /* 結果區塊樣式（Flex 版本） */
-      #result .result-title { font-weight: 700; margin-bottom: var(--space-2); }
-      #result .kv { display: flex; align-items: flex-start; padding: 6px 0; border-top: 1px dashed var(--color-border); }
-      #result .kv:first-of-type { border-top: 0; }
-      #result .k { color: #374151; font-weight: 600; white-space: nowrap; flex: 0 0 88px; max-width: 40%; }
-      #result .v { color: #111827; flex: 1 1 auto; min-width: 0; margin-left: 12px; }
-      /* 讓結果中的長網址在手機可折行 */
-      #result a { overflow-wrap: anywhere; word-break: break-word; }
-
-      
-
-      @media (min-width: 640px) {
-        h1 { font-size: clamp(22px, 3vw, 28px); }
-        .btn { width: auto; }
+      .btn:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
       }
 
-      @media (max-width: 420px) {
-        #result .kv { flex-direction: column; }
-        #result .v { margin-left: 0; margin-top: 4px; }
-        #result .k { opacity: .9; }
+      /* ===== 訊息 ===== */
+      .error {
+        color: var(--color-error);
+        margin-top: var(--space-2);
+      }
+
+      /* ===== 結果區塊 ===== */
+      #result .result-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: var(--space-2);
+      }
+
+      #result .kv {
+        display: flex;
+        padding: 8px 0;
+        border-top: 1px solid #eee;
+      }
+
+      #result .kv:first-of-type {
+        border-top: none;
+      }
+
+      #result .k {
+        font-weight: 600;
+        flex: 0 0 90px;
+        color: var(--color-text-secondary);
+      }
+
+      #result .v a {
+        color: var(--color-accent);
+        word-break: break-all;
+      }
+
+      /* ===== iPhone 放大字級：針對 iOS（含 Chrome iOS，皆用 WebKit）且窄螢幕 ===== */
+      @supports (-webkit-touch-callout: none) {
+        @media (max-width: 430px) {
+          /* 放大約 20% */
+          html { font-size: clamp(22px, 6vw, 26px); }
+          body { line-height: 1.7; }
+          h1 { font-size: clamp(31px, 9.6vw, 41px); }
+          select,
+          input[type="text"],
+          textarea { font-size: 1.44rem; }
+          input[type="text"],
+          select { min-height: 60px; }
+          .btn { font-size: 1.44rem; min-height: 68px; }
+          .hint { font-size: 1.2rem; }
+        }
       }
     </style>
   </head>
