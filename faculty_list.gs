@@ -144,3 +144,53 @@ const FACULTY_LIST = `
 教授
 研究專長： 軟體工程 軟體品質驗證 物件設計`;
 
+// 解析 FACULTY_LIST（原始段落）為結構化陣列，並輸出 JSON 供 LLM 使用
+function _parseFacultyRaw_(raw) {
+  try {
+    if (!raw) return [];
+    var blocks = raw
+      .split(/\n\s*\n+/) // 以空白行分段
+      .map(function (b) { return b.split(/\n+/).map(function (l) { return l.trim(); }).filter(Boolean); })
+      .filter(function (lines) { return lines.length > 0; });
+
+    return blocks.map(function (lines) {
+      var name = lines[0] || '';
+      var title = lines[1] || '';
+      var specLine = (lines.find(function (l) { return /^研究專長/.test(l); }) || '').replace(/^研究專長[:：]\s*/, '');
+      // 將專長切成陣列（以頓號、空白、逗點分隔）
+      var specialties = specLine
+        .split(/[、,，\s]+/)
+        .map(function (s) { return s.trim(); })
+        .filter(Boolean);
+      // 去重
+      var seen = {};
+      specialties = specialties.filter(function (s) { if (seen[s]) return false; seen[s] = true; return true; });
+
+      return {
+        name: name,
+        title: title,
+        specialties: specialties
+      };
+    });
+  } catch (e) {
+    return [];
+  }
+}
+
+/**
+ * LLM 參照用的結構化資料（物件陣列）
+ * @type {{name:string,title:string,specialties:string[]}[]}
+ */
+var FACULTY_STRUCTURED = _parseFacultyRaw_(typeof FACULTY_LIST === 'string' ? FACULTY_LIST : '');
+
+/**
+ * LLM 參照用的 JSON 字串（給 prompt 直接塞入）
+ * @type {string}
+ */
+var FACULTY_JSON = (function () {
+  try {
+    return JSON.stringify(FACULTY_STRUCTURED);
+  } catch (e) {
+    return '[]';
+  }
+})();

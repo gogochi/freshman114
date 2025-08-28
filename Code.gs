@@ -114,7 +114,7 @@ function callOpenAI_(apiKey, promptParts) {
 }
 
 function getFacultyList_() {
-  // 內容由 faculty_list.gs 中的 FACULTY_LIST 提供
+  // 優先回傳結構化 JSON（FACULTY_JSON），否則退回原始文字（FACULTY_LIST）
+  if (typeof FACULTY_JSON !== 'undefined' && FACULTY_JSON) return FACULTY_JSON;
   return typeof FACULTY_LIST !== 'undefined' ? FACULTY_LIST : '';
 }
-
