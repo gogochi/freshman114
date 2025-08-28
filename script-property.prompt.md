@@ -1,0 +1,3 @@
+撰寫腳本 使用 clasp 設定 Script Properties
+SHEET_ID=1y_sNljFc4Aa1GSswWDScGp7OXf3Mn6fR848a3tuUesE
+OPENAI_API_KEY=<YOUR_OPENAI_API_KEY>
