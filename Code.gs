@@ -67,14 +67,15 @@ function buildPrompt_(dream) {
 }
 
 function callOpenAI_(apiKey, promptParts) {
-  var url = 'https://api.openai.com/v1/chat/completions';
+  var url = 'https://api.openai.com/v1/responses';
   var payload = {
-    model: 'gpt-4o-mini',
-    messages: [
-      { role: 'system', content: promptParts.system },
-      { role: 'user', content: promptParts.user }
-    ],
-    temperature: 0.2
+    model: 'gpt-5-mini',
+    input: [
+      'System:\n' + promptParts.system,
+      '',
+      'User:\n' + promptParts.user
+    ].join('\n'),
+    // 部分模型不支援 temperature，移除避免 400 錯誤
   };
 
   var res = UrlFetchApp.fetch(url, {
@@ -98,7 +99,33 @@ function callOpenAI_(apiKey, promptParts) {
     return { rawText: text };
   }
 
-  var content = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content || '';
+  // 嘗試從 Responses API 結構擷取文字
+  var content = '';
+  if (data.output_text) {
+    content = data.output_text;
+  } else if (data.output && Array.isArray(data.output)) {
+    // 聚合 output 陣列中的文字
+    var parts = [];
+    for (var i = 0; i < data.output.length; i++) {
+      var item = data.output[i];
+      if (!item) continue;
+      if (item.type === 'output_text' && item.text) {
+        parts.push(item.text);
+      } else if (item.type === 'message' && item.content && Array.isArray(item.content)) {
+        for (var j = 0; j < item.content.length; j++) {
+          var c = item.content[j];
+          if (!c) continue;
+          if (c.type === 'output_text' && c.text) parts.push(c.text);
+          else if (typeof c.text === 'string') parts.push(c.text);
+        }
+      }
+    }
+    content = parts.join('\n');
+  } else if (data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) {
+    // 相容舊的 chat/completions 結構（以防未來回退）
+    content = data.choices[0].message.content;
+  }
+
   // 嘗試解析 JSON
   try {
     var jsonStart = content.indexOf('{');
