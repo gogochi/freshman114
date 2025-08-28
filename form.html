@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <!-- Add some simple styling -->
+    <style>
+      body { font-family: sans-serif; margin: 2em; }
+      #result { margin-top: 1em; font-size: 1.2em; word-wrap: break-word; }
+      #error { color: red; }
+      input { width: 300px; padding: 8px; }
+      button { padding: 8px 15px; }
+    </style>
+  </head>
+  <body>
+    <h1>輸入專家</h1>
+    <form id="myForm">
+      <label for="expert">專家姓名：</label>
+      <input type="text" id="expert" name="expert" required>
+      <br><br>
+      <button type="submit">提交</button>
+    </form>
+    <div id="result"></div>
+    <div id="error"></div>
+
+    <script>
+      document.getElementById("myForm").addEventListener("submit", function(e) {
+        e.preventDefault(); // Prevent default form submission
+        var expertName = document.getElementById("expert").value;
+        
+        // Show a loading message
+        document.getElementById("result").innerHTML = "處理中...";
+        document.getElementById("error").innerHTML = "";
+
+        google.script.run
+          .withSuccessHandler(function(urlOrError) {
+            if (urlOrError.startsWith("Error:")) {
+              document.getElementById("error").innerHTML = urlOrError;
+              document.getElementById("result").innerHTML = "";
+            } else {
+              document.getElementById("result").innerHTML = '您的專屬連結：<a href="' + urlOrError + '" target="_blank">' + urlOrError + '</a>';
+              document.getElementById("error").innerHTML = "";
+            }
+          })
+          .withFailureHandler(function(error) {
+            document.getElementById("error").innerHTML = "指令碼執行失敗：" + error.message;
+            document.getElementById("result").innerHTML = "";
+          })
+          .processForm(expertName);
+      });
+    </script>
+  </body>
+</html>
