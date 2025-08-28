@@ -1,5 +1,6 @@
 function doGet() {
   return HtmlService.createHtmlOutputFromFile('form')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover')
     .setTitle('找老師(資訊系新鮮人成長營 114)');
 }
 
