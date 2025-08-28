@@ -171,6 +171,23 @@
         word-break: break-all;
       }
 
+      /* ===== 手機全幅（移除灰邊與外距） ===== */
+      @media (max-width: 430px) {
+        body {
+          background-color: #fff; /* 去除灰色背景 */
+          /* 使用安全區域，邊到邊呈現 */
+          padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0;
+        }
+        .container { max-width: none; margin: 0; }
+        .card {
+          border-left: none;
+          border-right: none;
+          border-radius: 0;     /* 滿版卡片 */
+          box-shadow: none;     /* 移除陰影避免視覺邊框 */
+        }
+        #result.card { margin-top: var(--space-2); }
+      }
+
       /* ===== iPhone 放大字級：針對 iOS（含 Chrome iOS，皆用 WebKit）且窄螢幕 ===== */
       @supports (-webkit-touch-callout: none) {
         @media (max-width: 430px) {
