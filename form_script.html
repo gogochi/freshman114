@@ -1,6 +1,9 @@
 (function () {
   'use strict';
 
+  /** 常數與設定 */
+  const FIELDS = ['className', 'studentId', 'name', 'dream'];
+
   // -------- DOM helpers --------
   const $ = (id) => document.getElementById(id);
   const Dom = {
@@ -23,6 +26,17 @@
     }
   };
 
+  /**
+   * 簡易 debounce，降低 localStorage 寫入頻率
+   */
+  function debounce(fn, wait) {
+    let t;
+    return function (...args) {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+
   // -------- URL utils --------
   const URLUtil = {
     sanitize(url) {
@@ -43,6 +57,9 @@
     if (!btn) return;
     btn.disabled = !!loading;
     btn.textContent = loading ? (btn.getAttribute('data-busy') || '分析中…') : (btn.getAttribute('data-idle') || '提交');
+    btn.setAttribute('aria-disabled', String(!!loading));
+    const form = $('dreamForm');
+    if (form) form.setAttribute('aria-busy', String(!!loading));
   }
 
   function showError(msg) {
@@ -73,6 +90,19 @@
     return row;
   }
 
+  function buildWebLink(url) {
+    if (!url) return document.createTextNode('（無）');
+    const safe = URLUtil.sanitize(url);
+    if (!safe) return document.createTextNode('（無）');
+    const a = document.createElement('a');
+    a.href = safe;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.className = 'text-blue-600 break-all hover:underline';
+    a.textContent = URLUtil.display(safe);
+    return a;
+  }
+
   function renderResult(res) {
     const container = $('result');
     if (!container) return;
@@ -89,20 +119,7 @@
     container.appendChild(kvRow('推薦你找', teacher + teacherTitle));
     container.appendChild(kvRow('推薦原因', reason));
 
-    let webNode = document.createTextNode('（無）');
-    if (res && res.web) {
-      const safe = URLUtil.sanitize(res.web);
-      if (safe) {
-        const a = document.createElement('a');
-        a.href = safe;
-        a.target = '_blank';
-        a.rel = 'noopener noreferrer';
-        a.className = 'text-blue-600 break-all hover:underline';
-        a.textContent = URLUtil.display(safe);
-        webNode = a;
-      }
-    }
-    container.appendChild(kvRow('老師網頁', webNode));
+    container.appendChild(kvRow('老師網頁', buildWebLink(res && res.web)));
 
     Dom.show(container);
   }
@@ -110,10 +127,10 @@
   // -------- Validation & data --------
   function getData() {
     return {
-      className: $('className').value.trim(),
-      studentId: $('studentId').value.trim(),
-      name: $('name').value.trim(),
-      dream: $('dream').value.trim()
+      className: $('className')?.value.trim() || '',
+      studentId: $('studentId')?.value.trim() || '',
+      name: $('name')?.value.trim() || '',
+      dream: $('dream')?.value.trim() || ''
     };
   }
 
@@ -127,19 +144,38 @@
   function restoreFromStorage() {
     const saved = Storage.load();
     if (!saved) return;
-    ['className', 'studentId', 'name', 'dream'].forEach((f) => { const el = $(f); if (el && saved[f]) el.value = saved[f]; });
+    FIELDS.forEach((f) => { const el = $(f); if (el && saved[f]) el.value = saved[f]; });
   }
 
   function bindAutosave() {
-    ['className', 'studentId', 'name', 'dream'].forEach((f) => {
+    const save = debounce(() => Storage.save(getData()), 200);
+    FIELDS.forEach((f) => {
       const el = $(f);
       if (!el) return;
-      el.addEventListener('input', () => Storage.save(getData()));
-      el.addEventListener('change', () => Storage.save(getData()));
+      el.addEventListener('input', save);
+      el.addEventListener('change', save);
+      // 任何輸入時清掉錯誤提示
+      el.addEventListener('input', () => clearError());
     });
   }
 
-  function onSubmit(e) {
+  // -------- Server API 包裝成 Promise --------
+  const API = {
+    call(name, ...args) {
+      return new Promise((resolve, reject) => {
+        try {
+          // 動態呼叫 Apps Script 公開函式
+          google.script.run
+            .withSuccessHandler(resolve)
+            .withFailureHandler(reject)[name](...args);
+        } catch (e) {
+          reject(e);
+        }
+      });
+    }
+  };
+
+  async function onSubmit(e) {
     e.preventDefault();
     clearError();
     Dom.hide($('result'));
@@ -149,16 +185,15 @@
     if (msg) { showError(msg); return; }
 
     setLoading(true);
-    google.script.run
-      .withSuccessHandler((res) => {
-        setLoading(false);
-        renderResult(res || {});
-      })
-      .withFailureHandler((err) => {
-        setLoading(false);
-        showError((err && err.message) ? err.message : String(err || '未知錯誤'));
-      })
-      .handleForm(data);
+    try {
+      const res = await API.call('handleForm', data);
+      renderResult(res || {});
+    } catch (err) {
+      console.error(err);
+      showError((err && err.message) ? err.message : String(err || '未知錯誤'));
+    } finally {
+      setLoading(false);
+    }
   }
 
   function init() {
@@ -170,4 +205,3 @@
 
   document.addEventListener('DOMContentLoaded', init);
 })();
-
