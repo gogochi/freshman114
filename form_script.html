@@ -159,21 +159,19 @@
     });
   }
 
-  // -------- Server API 包裝成 Promise --------
-  const API = {
-    call(name, ...args) {
-      return new Promise((resolve, reject) => {
-        try {
-          // 動態呼叫 Apps Script 公開函式
-          google.script.run
-            .withSuccessHandler(resolve)
-            .withFailureHandler(reject)[name](...args);
-        } catch (e) {
-          reject(e);
-        }
-      });
-    }
-  };
+  // -------- Server API（具名函式，async/await 友善） --------
+  function handleFormAsync(data) {
+    return new Promise((resolve, reject) => {
+      try {
+        google.script.run
+          .withSuccessHandler(resolve)
+          .withFailureHandler(reject)
+          .handleForm(data);
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -186,7 +184,7 @@
 
     setLoading(true);
     try {
-      const res = await API.call('handleForm', data);
+      const res = await handleFormAsync(data);
       renderResult(res || {});
     } catch (err) {
       console.error(err);
