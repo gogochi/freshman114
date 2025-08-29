@@ -1,0 +1,173 @@
+(function () {
+  'use strict';
+
+  // -------- DOM helpers --------
+  const $ = (id) => document.getElementById(id);
+  const Dom = {
+    show: (el) => { if (el) el.style.display = 'block'; },
+    hide: (el) => { if (el) el.style.display = 'none'; },
+    text: (el, t) => { if (el) el.textContent = t; }
+  };
+
+  // -------- Local storage --------
+  const Storage = {
+    key: 'dreamForm',
+    save(data) {
+      try { localStorage.setItem(this.key, JSON.stringify(data)); } catch (e) {}
+    },
+    load() {
+      try {
+        const raw = localStorage.getItem(this.key);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+  };
+
+  // -------- URL utils --------
+  const URLUtil = {
+    sanitize(url) {
+      try {
+        const u = new URL(url);
+        if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString();
+      } catch (e) {}
+      return '';
+    },
+    display(url) {
+      try { return decodeURI(url); } catch (e) { return url; }
+    }
+  };
+
+  // -------- UI state --------
+  function setLoading(loading) {
+    const btn = $('submitBtn');
+    if (!btn) return;
+    btn.disabled = !!loading;
+    btn.textContent = loading ? (btn.getAttribute('data-busy') || '分析中…') : (btn.getAttribute('data-idle') || '提交');
+  }
+
+  function showError(msg) {
+    const el = $('err');
+    Dom.text(el, msg || '未知錯誤');
+    Dom.show(el);
+  }
+
+  function clearError() {
+    const el = $('err');
+    Dom.text(el, '');
+    Dom.hide(el);
+  }
+
+  // -------- Rendering --------
+  function kvRow(label, valueNode) {
+    const row = document.createElement('div');
+    row.className = 'kv flex py-1 md:py-1.5 border-t border-gray-200 first:border-t-0';
+    const k = document.createElement('div');
+    k.className = 'k font-medium flex-none w-20 md:w-24 text-gray-500 text-sm';
+    k.textContent = label;
+    const v = document.createElement('div');
+    v.className = 'v flex-1';
+    if (typeof valueNode === 'string') v.textContent = valueNode;
+    else if (valueNode) v.appendChild(valueNode);
+    row.appendChild(k);
+    row.appendChild(v);
+    return row;
+  }
+
+  function renderResult(res) {
+    const container = $('result');
+    if (!container) return;
+    container.innerHTML = '';
+    const title = document.createElement('div');
+    title.className = 'result-title text-base md:text-lg font-semibold mb-2.5';
+    title.textContent = '建議結果';
+    container.appendChild(title);
+
+    const teacher = (res && res.teacherName) ? res.teacherName : '（無）';
+    const teacherTitle = (res && res.title) ? (' ' + res.title) : '';
+    const reason = (res && res.reason) ? res.reason : '（無）';
+
+    container.appendChild(kvRow('推薦你找', teacher + teacherTitle));
+    container.appendChild(kvRow('推薦原因', reason));
+
+    let webNode = document.createTextNode('（無）');
+    if (res && res.web) {
+      const safe = URLUtil.sanitize(res.web);
+      if (safe) {
+        const a = document.createElement('a');
+        a.href = safe;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.className = 'text-blue-600 break-all hover:underline';
+        a.textContent = URLUtil.display(safe);
+        webNode = a;
+      }
+    }
+    container.appendChild(kvRow('老師網頁', webNode));
+
+    Dom.show(container);
+  }
+
+  // -------- Validation & data --------
+  function getData() {
+    return {
+      className: $('className').value.trim(),
+      studentId: $('studentId').value.trim(),
+      name: $('name').value.trim(),
+      dream: $('dream').value.trim()
+    };
+  }
+
+  function validate(data) {
+    if (!data.className || !data.studentId || !data.name || !data.dream) return '請完整填寫所有欄位';
+    if (!/^[-A-Za-z0-9]+$/.test(data.studentId)) return '學號格式不正確（僅允許英數與連字號）';
+    return '';
+  }
+
+  // -------- Event wiring --------
+  function restoreFromStorage() {
+    const saved = Storage.load();
+    if (!saved) return;
+    ['className', 'studentId', 'name', 'dream'].forEach((f) => { const el = $(f); if (el && saved[f]) el.value = saved[f]; });
+  }
+
+  function bindAutosave() {
+    ['className', 'studentId', 'name', 'dream'].forEach((f) => {
+      const el = $(f);
+      if (!el) return;
+      el.addEventListener('input', () => Storage.save(getData()));
+      el.addEventListener('change', () => Storage.save(getData()));
+    });
+  }
+
+  function onSubmit(e) {
+    e.preventDefault();
+    clearError();
+    Dom.hide($('result'));
+
+    const data = getData();
+    const msg = validate(data);
+    if (msg) { showError(msg); return; }
+
+    setLoading(true);
+    google.script.run
+      .withSuccessHandler((res) => {
+        setLoading(false);
+        renderResult(res || {});
+      })
+      .withFailureHandler((err) => {
+        setLoading(false);
+        showError((err && err.message) ? err.message : String(err || '未知錯誤'));
+      })
+      .handleForm(data);
+  }
+
+  function init() {
+    restoreFromStorage();
+    bindAutosave();
+    const form = $('dreamForm');
+    if (form) form.addEventListener('submit', onSubmit);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+
