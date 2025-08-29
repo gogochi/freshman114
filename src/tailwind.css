@@ -4,3 +4,5 @@
 
 /* 這裡可以放自訂元件/工具類（若需要） */
 
+/* 全域使用 border-box，避免表單寬度受 padding/border 影響而溢出 */
+*, *::before, *::after { box-sizing: border-box; }
