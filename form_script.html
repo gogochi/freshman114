@@ -135,29 +135,12 @@
   }
 
   function validate(data) {
+    // 僅在送出後由伺服器檢查學號；前端只檢查必填
     if (!data.className || !data.studentId || !data.name || !data.dream) return '請完整填寫所有欄位';
-    // 學號：1 英文字母 + 7 碼數字（最後一碼為檢查碼）
-    if (!/^[A-Za-z][0-9]{7}$/.test(data.studentId)) return '學號格式不正確（需 1 英文字母 + 7 碼數字）';
-    // 檢查碼驗證
-    const digits7 = data.studentId.slice(1); // 去掉前綴字母
-    const expected = computeCheckDigit(digits7);
-    const actual = Number(digits7[6]);
-    if (Number.isNaN(expected) || actual !== expected) return '學號檢查碼不正確';
     return '';
   }
 
-  // 計算 7 碼數字（含檢查碼）的正確檢查碼（依據前 6 碼）
-  function computeCheckDigit(d7) {
-    if (!/^\d{7}$/.test(d7)) return NaN;
-    const weights = [8, 7, 6, 8, 7, 6];
-    let total = 0;
-    for (let i = 0; i < 6; i++) {
-      const n = d7.charCodeAt(i) - 48; // 快速轉數字
-      const prod = n * weights[i];
-      total += Math.floor(prod / 10) + (prod % 10);
-    }
-    return (10 - (total % 10)) % 10;
-  }
+  // 已退回：前端不計算學號檢查碼
 
   // -------- Event wiring --------
   function restoreFromStorage() {
@@ -207,7 +190,13 @@
       renderResult(res || {});
     } catch (err) {
       console.error(err);
-      showError((err && err.message) ? err.message : String(err || '未知錯誤'));
+      const msg = (err && err.message) ? err.message : String(err || '未知錯誤');
+      showError(msg);
+      // 若是學號錯誤，聚焦學號欄位提醒重新輸入
+      if (/學號/.test(msg)) {
+        const el = $('studentId');
+        if (el) { el.focus(); el.select && el.select(); }
+      }
     } finally {
       setLoading(false);
     }
@@ -217,8 +206,17 @@
     restoreFromStorage();
     bindAutosave();
     const form = $('dreamForm');
-    if (form) form.addEventListener('submit', onSubmit);
+    if (form) {
+      form.addEventListener('submit', onSubmit, { passive: false });
+      const btn = $('submitBtn');
+      if (btn) btn.addEventListener('click', (e) => { e.preventDefault(); onSubmit(e); }); // 後援
+    }
   }
 
-  document.addEventListener('DOMContentLoaded', init);
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    // DOM 已可操作，立即初始化（避免漏接 DOMContentLoaded 導致表單跳轉）
+    init();
+  }
 })();

@@ -18,10 +18,7 @@ function handleForm(data) {
   validateFormData_(data);
 
   var cfg = getConfig_();
-  // 伺服器端加驗：學號格式與檢查碼
-  if (!isValidStudentId_(data.studentId)) {
-    throw new Error('學號格式不正確或檢查碼錯誤');
-  }
+  // 學號檢查：已退回至不在此階段強制檢查
   var prompt = buildPrompt_(data.dream);
   var ai = callOpenAI_(cfg.OPENAI_API_KEY, prompt, cfg);
 
@@ -249,30 +246,7 @@ function getFacultyList_() {
 /**
  * 驗證學號：1 英文字母 + 7 碼數字（最後一碼為檢查碼）
  */
-function isValidStudentId_(studentId) {
-  if (typeof studentId !== 'string') return false;
-  var m = studentId.match(/^[A-Za-z](\d{7})$/);
-  if (!m) return false;
-  var d7 = m[1]; // 七位數字
-  var expected = computeCheckDigit_(d7);
-  var actual = Number(d7.charAt(6));
-  return actual === expected;
-}
-
-/**
- * 計算檢查碼（依據前 6 碼與權重 [8,7,6,8,7,6]）
- */
-function computeCheckDigit_(d7) {
-  if (!/^[0-9]{7}$/.test(d7)) return NaN;
-  var weights = [8, 7, 6, 8, 7, 6];
-  var total = 0;
-  for (var i = 0; i < 6; i++) {
-    var n = d7.charCodeAt(i) - 48; // 快速轉數字
-    var prod = n * weights[i];
-    total += Math.floor(prod / 10) + (prod % 10);
-  }
-  return (10 - (total % 10)) % 10;
-}
+// 學號檢查相關函式已移除（退回到不檢查狀態）
 
 /** 依老師姓名查找職稱（title）；若找不到回傳空字串 */
 function findTitleByName_(name) {

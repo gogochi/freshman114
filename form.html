@@ -22,7 +22,7 @@
         </select>
 
         <label for="studentId" class="block mt-3 mb-1 text-sm font-medium">學號 Student ID</label>
-        <input type="text" id="studentId" name="studentId" required inputmode="text" autocomplete="on" pattern="[A-Za-z][0-9]{7}" title="學號需為 1 英文字母 + 7 碼數字（最後一碼為檢查碼）" class="block w-full box-border px-3 py-2 md:px-3.5 md:py-2.5 text-[15px] md:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm" />
+        <input type="text" id="studentId" name="studentId" required inputmode="text" autocomplete="on" class="block w-full box-border px-3 py-2 md:px-3.5 md:py-2.5 text-[15px] md:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm" />
 
         <label for="name" class="block mt-3 mb-1 text-sm font-medium">姓名 Name</label>
         <input type="text" id="name" name="name" required autocomplete="name" class="block w-full box-border px-3 py-2 md:px-3.5 md:py-2.5 text-[15px] md:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm" />
@@ -30,7 +30,7 @@
         <label for="dream" class="block mt-3 mb-1 text-sm font-medium">四年的學習，如果可以幫助你完成一個夢想，那會是什麼夢想? 請詳細說明<br /><span class="text-sm text-gray-500 font-normal">If four years of study could help you achieve one dream, what would it be? Please elaborate.</span></label>
         <textarea id="dream" name="dream" required class="block w-full box-border px-3 py-2 md:px-3.5 md:py-2.5 text-[15px] md:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm min-h-[100px] md:min-h-[140px] resize-y"></textarea>
 
-        <button class="btn block w-full box-border mt-4 py-2.5 md:py-3 text-[15px] md:text-base font-semibold text-white bg-blue-600 rounded-md disabled:opacity-70 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors shadow-sm" id="submitBtn" type="submit" data-idle="提交 Submit" data-busy="分析中… Analyzing…">提交 Submit</button>
+        <button class="btn block w-full box-border mt-4 py-2.5 md:py-3 text-[15px] md:text-base font-semibold text-white bg-blue-600 rounded-md disabled:opacity-70 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors shadow-sm" id="submitBtn" type="submit" formnovalidate data-idle="提交 Submit" data-busy="分析中… Analyzing…">提交 Submit</button>
         <div id="err" class="error text-red-600 mt-3 text-sm" role="alert" aria-live="assertive" style="display:none"></div>
         </form>
       </div>
