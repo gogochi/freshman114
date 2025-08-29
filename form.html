@@ -182,13 +182,13 @@
 
     </style>
   </head>
-  <body>
-    <div class="container">
-      <h1>找老師 (資訊系新鮮人成長營 114)</h1>
-      <div class="card">
+  <body class="bg-gray-100 text-gray-800 antialiased min-h-screen py-5 px-5">
+    <div class="container max-w-xl mx-auto">
+      <h1 class="text-2xl font-semibold leading-snug mb-5">找老師 (資訊系新鮮人成長營 114)</h1>
+      <div class="card bg-white border border-gray-300 rounded-xl p-7 shadow-sm">
         <form id="dreamForm" novalidate autocomplete="on">
         <label for="className">班級 Class</label>
-        <select id="className" name="className" required>
+        <select id="className" name="className" required class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm">
           <option value="">請選擇 Select…</option>
           <option>資訊一甲</option>
           <option>資訊一乙</option>
@@ -196,20 +196,20 @@
         </select>
 
         <label for="studentId">學號 Student ID</label>
-        <input type="text" id="studentId" name="studentId" required inputmode="numeric" autocomplete="on" />
+        <input type="text" id="studentId" name="studentId" required inputmode="numeric" autocomplete="on" class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm" />
 
         <label for="name">姓名 Name</label>
-        <input type="text" id="name" name="name" required autocomplete="name" />
+        <input type="text" id="name" name="name" required autocomplete="name" class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm" />
 
         <label for="dream">四年的學習，如果可以幫助你完成一個夢想，那會是什麼夢想? 請詳細說明<br /><span class="hint">If four years of study could help you achieve one dream, what would it be? Please elaborate.</span></label>
-        <textarea id="dream" name="dream" required></textarea>
+        <textarea id="dream" name="dream" required class="w-full px-4 py-3 text-base border border-gray-300 rounded-lg bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm min-h-[140px] resize-y"></textarea>
 
-        <button class="btn" id="submitBtn" type="submit" data-idle="提交 Submit" data-busy="分析中… Analyzing…">提交 Submit</button>
-        <div id="err" class="error" role="alert" aria-live="assertive" style="display:none"></div>
+        <button class="btn w-full mt-5 py-4 text-base font-semibold text-white bg-blue-600 rounded-lg disabled:opacity-70 disabled:cursor-not-allowed hover:bg-blue-700 transition-colors" id="submitBtn" type="submit" data-idle="提交 Submit" data-busy="分析中… Analyzing…">提交 Submit</button>
+        <div id="err" class="error text-red-600 mt-4" role="alert" aria-live="assertive" style="display:none"></div>
         </form>
       </div>
 
-      <div id="result" class="card" style="display:none" aria-live="polite"></div>
+      <div id="result" class="card bg-white border border-gray-300 rounded-xl p-7 shadow-sm mt-5" style="display:none" aria-live="polite"></div>
     </div>
 
     <script>
@@ -255,12 +255,12 @@
 
         function renderKV(label, valueNode) {
           const row = document.createElement('div');
-          row.className = 'kv';
+          row.className = 'kv flex py-2 border-t border-gray-200 first:border-t-0';
           const k = document.createElement('div');
-          k.className = 'k';
+          k.className = 'k font-semibold flex-none w-24 text-gray-500';
           k.textContent = label;
           const v = document.createElement('div');
-          v.className = 'v';
+          v.className = 'v flex-1';
           if (typeof valueNode === 'string') {
             v.textContent = valueNode;
           } else if (valueNode) {
@@ -275,7 +275,7 @@
           const container = $('result');
           container.innerHTML = '';
           const title = document.createElement('div');
-          title.className = 'result-title';
+          title.className = 'result-title text-lg font-semibold mb-3';
           title.textContent = '建議結果';
           container.appendChild(title);
 
@@ -293,6 +293,7 @@
               a.href = safe;
               a.target = '_blank';
               a.rel = 'noopener noreferrer';
+              a.className = 'text-blue-600 break-all hover:underline';
               a.textContent = safe;
               webNode = a;
             }
