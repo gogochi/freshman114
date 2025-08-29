@@ -120,7 +120,10 @@
               a.target = '_blank';
               a.rel = 'noopener noreferrer';
               a.className = 'text-blue-600 break-all hover:underline';
-              a.textContent = safe;
+              // 顯示人類可讀（解碼後）的中文字，但 href 維持編碼版本
+              let label = safe;
+              try { label = decodeURI(safe); } catch (e) { label = res.web; }
+              a.textContent = label;
               webNode = a;
             }
           }
