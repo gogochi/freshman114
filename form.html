@@ -22,7 +22,7 @@
         </select>
 
         <label for="studentId" class="block mt-3 mb-1 text-sm font-medium">學號 Student ID</label>
-        <input type="text" id="studentId" name="studentId" required inputmode="numeric" autocomplete="on" class="block w-full box-border px-3 py-2 md:px-3.5 md:py-2.5 text-[15px] md:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm" />
+        <input type="text" id="studentId" name="studentId" required inputmode="text" autocomplete="on" pattern="[A-Za-z][0-9]+" title="學號需以英文開頭，後接數字" class="block w-full box-border px-3 py-2 md:px-3.5 md:py-2.5 text-[15px] md:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm" />
 
         <label for="name" class="block mt-3 mb-1 text-sm font-medium">姓名 Name</label>
         <input type="text" id="name" name="name" required autocomplete="name" class="block w-full box-border px-3 py-2 md:px-3.5 md:py-2.5 text-[15px] md:text-base border border-gray-300 rounded-md bg-white focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-200 shadow-sm" />

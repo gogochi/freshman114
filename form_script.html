@@ -136,7 +136,8 @@
 
   function validate(data) {
     if (!data.className || !data.studentId || !data.name || !data.dream) return '請完整填寫所有欄位';
-    if (!/^[-A-Za-z0-9]+$/.test(data.studentId)) return '學號格式不正確（僅允許英數與連字號）';
+    // 學號：英文字母開頭，後接一或多位數字
+    if (!/^[A-Za-z][0-9]+$/.test(data.studentId)) return '學號格式不正確（需以英文開頭，後接數字）';
     return '';
   }
 
