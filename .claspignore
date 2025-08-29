@@ -1,0 +1,20 @@
+# Ignore Node build and tooling files from being pushed to GAS
+node_modules/**
+build/**
+scripts/**
+src/**
+package.json
+package-lock.json
+tailwind.config.cjs
+.git/**
+.idea/**
+.env
+README*
+*.md
+
+# Keep these project files
+!appsscript.json
+!Code.gs
+!faculty_list.gs
+!form.html
+!styles.html
