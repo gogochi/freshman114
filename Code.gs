@@ -23,13 +23,14 @@ function handleForm(data) {
 
   var teacherName = ai.teacherName || ai.老師姓名 || '';
   var reason = ai.reason || ai.推薦原因 || '';
-
+  
   if (!teacherName || !reason) {
     // 後備：若無法解析成 JSON，試著從原始文字中找
     teacherName = (ai.rawText || '').match(/老師姓名[:：]\s*([^\n]+)/)?.[1] || '';
     reason = (ai.rawText || '').match(/推薦原因[:：]\s*([\s\S]*)$/)?.[1]?.trim() || '';
   }
 
+  var title = findTitleByName_(teacherName);
   var web = cfg.FACULTY_WEBSITE_PREFIX + teacherName;
 
   // 寫入試算表（第一個分頁）
@@ -45,7 +46,7 @@ function handleForm(data) {
     reason
   ]);
 
-  return { teacherName: teacherName, reason: reason, web: web };
+  return { teacherName: teacherName, title: title, reason: reason, web: web };
 }
 
 function buildPrompt_(dream) {
@@ -239,4 +240,18 @@ function getFacultyList_() {
   // 優先回傳結構化 JSON（FACULTY_JSON），否則退回原始文字（FACULTY_LIST）
   if (typeof FACULTY_JSON !== 'undefined' && FACULTY_JSON) return FACULTY_JSON;
   return typeof FACULTY_LIST !== 'undefined' ? FACULTY_LIST : '';
+}
+
+/** 依老師姓名查找職稱（title）；若找不到回傳空字串 */
+function findTitleByName_(name) {
+  try {
+    if (!name) return '';
+    if (typeof FACULTY_STRUCTURED !== 'undefined' && Array.isArray(FACULTY_STRUCTURED)) {
+      for (var i = 0; i < FACULTY_STRUCTURED.length; i++) {
+        var t = FACULTY_STRUCTURED[i];
+        if (t && t.name === name) return t.title || '';
+      }
+    }
+  } catch (e) {}
+  return '';
 }

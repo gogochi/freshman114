@@ -106,9 +106,10 @@
           container.appendChild(title);
 
           const teacher = (res && res.teacherName) ? res.teacherName : '（無）';
+          const teacherTitle = (res && res.title) ? (' ' + res.title) : '';
           const reason = (res && res.reason) ? res.reason : '（無）';
 
-          container.appendChild(renderKV('推薦你找', teacher));
+          container.appendChild(renderKV('推薦你找', teacher + teacherTitle));
           container.appendChild(renderKV('推薦原因', reason));
 
           let webNode = document.createTextNode('（無）');
