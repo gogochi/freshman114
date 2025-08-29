@@ -1,8 +1,10 @@
 /**
- * Web 入口：載入表單頁面
+ * Web 入口：載入表單頁面（使用模板，支援 include）
  */
 function doGet() {
-  return HtmlService.createHtmlOutputFromFile('form')
+  var t = HtmlService.createTemplateFromFile('form');
+  return t
+    .evaluate()
     .addMetaTag('viewport', 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover')
     .setTitle('找老師(資訊系新鮮人成長營 114)');
 }

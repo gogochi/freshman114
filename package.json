@@ -1,0 +1,14 @@
+{
+  "name": "freshman114",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build:css": "npx tailwindcss -i src/tailwind.css -o build/tailwind.css -m",
+    "build:styles": "node scripts/generate-styles-html.js",
+    "build": "npm run build:css && npm run build:styles"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.10"
+  }
+}
+
